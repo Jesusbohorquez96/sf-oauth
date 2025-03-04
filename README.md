@@ -26,7 +26,6 @@ public class SAMLAssertionGenerator {
         GenerateSaml generator = new GenerateSaml();
 
         generator.generatesaml(
-                "https://example.com/odata/token",
                 "https://example.com/oauth/token",
                 "your-client-id",
                 "your-private-key",
