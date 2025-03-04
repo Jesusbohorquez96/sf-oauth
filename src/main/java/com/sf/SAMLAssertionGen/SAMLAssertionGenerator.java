@@ -182,7 +182,6 @@ public class SAMLAssertionGenerator {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public static <T> T create(Class<T> cls, QName qname) {
 		return (T) ((XMLObjectBuilder) Configuration.getBuilderFactory().getBuilder(qname)).buildObject(qname);
 	}
