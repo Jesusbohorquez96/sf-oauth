@@ -1,119 +1,88 @@
-# SAMLAssertionGen - Guía de Usuario
+# Generador de SAML Assertions y Tokens OAuth2
 
 ## Introducción
 
-SAMLAssertionGen es una herramienta que permite la generación de SAML Assertions para autenticación y obtención de tokens en aplicaciones que requieren este tipo de autenticación.
+SAML Assertions es una herramienta que permite la generación de SAML Assertions para autenticación y obtención de tokens en aplicaciones que requieren este tipo de autenticación.
 
-Este proyecto está basado en Maven y requiere configuraciones previas para su correcta ejecución.
+Este proyecto está desarrollado en **Java** y utiliza **Maven** para la gestión de dependencias.
 
 ## Prerrequisitos
 
 Antes de ejecutar el proyecto, asegúrese de contar con lo siguiente:
 
-- **Java 8 o superior** instalado en el sistema.
+- **Java 17** instalado en el sistema.
 - **Maven** instalado y configurado correctamente.
 - **Conexión a Internet** para descargar dependencias de Maven.
 
-## Estructura del Proyecto
+## Configuración y Uso del Generador de SAML Assertion
 
-El proyecto está compuesto por los siguientes archivos y carpetas principales:
+En este proyecto, la configuración puede realizarse de diferentes maneras según las necesidades del usuario. Se pueden proporcionar parámetros directamente en el código, pasarlos como argumentos en la línea de comandos o configurar variables de entorno para mayor seguridad y flexibilidad.
 
-```
-SAMLAssertionGen/
-├── src/                    # Contiene el código fuente del proyecto.
-├── pom.xml                 # Archivo de configuración de Maven con las dependencias requeridas.
-├── SAMLAssertion.properties # Archivo de configuración para la generación de la SAML Assertion.
-├── config.properties       # Archivo de configuración adicional con datos de autenticación.
-```
+Ejemplo de configuración en código:
 
-## Configuración de los Archivos de Propiedades
+```java
+public class SAMLAssertionGenerator {
+    public static void main(String[] args) {
+        GenerateSaml generator = new GenerateSaml();
 
-### Archivo `SAMLAssertion.properties`
-
-Antes de ejecutar el proyecto, es necesario modificar el archivo `SAMLAssertion.properties` con la información adecuada:
-
-- **tokenUrl**: URL donde se solicitará el token.
-- **clientId**: Identificador del cliente registrado en la aplicación BizX.
-- **userId / userName**: Usuario para el cual se generará la aserción SAML.
-    - Si `userId` está vacío o nulo, se utilizará `userName`.
-- **privateKey**: Clave privada que coincide con la clave pública configurada en BizX.
-- **expireInMinutes**: Tiempo en minutos de validez de la SAML Assertion.
-
-Ejemplo de archivo `SAMLAssertion.properties`:
-
-```properties
-tokenUrl=https://your-token-url.com
-clientId=your-client-id
-userId=your-user-id
-privateKey=your-private-key
+        generator.generatesaml(
+                "https://example.com/odata/token",
+                "https://example.com/oauth/token",
+                "your-client-id",
+                "your-private-key",
+                "your-user-api",
+                "your-company-id"
+        );
+    }
+}
 ```
 
-### Archivo `config.properties`
-
-Este archivo contiene configuraciones adicionales necesarias para la autenticación.
-
-Ejemplo de archivo `config.properties`:
-
-```properties
-tokenUrl=https://your-authentication-url.com
-clientId=your-client-id
-companyId=your-company-id
-```
-
-## Generación de la SAML Assertion
-
-Existen dos formas de generar la SAML Assertion:
-
-### Opción 1: Ejecución directa con Maven
+### Opción 1: Ejecución con Maven
 
 Ejecute el siguiente comando en la carpeta del proyecto:
 
 ```sh
-mvn compile exec:java -Dexec.args="SAMLAssertion.properties"
+mvn compile exec:java
 ```
 
-### Opción 2: Compilar y ejecutar el JAR manualmente
+### Opción 2: Compilar y ejecutar manualmente el JAR
 
-#### 1. Compilar y Empaquetar el Proyecto
-
-Ejecute el siguiente comando en la carpeta del proyecto:
+#### 1. Compilar y empaquetar el proyecto
 
 ```sh
 mvn clean compile package
 ```
 
-Una vez completado el proceso, se generará una carpeta `target/` con el archivo `SAMLAssertionGen-1.0.0.jar`.
+Esto generará una carpeta `target/`: y el archivo JAR 
 
-#### 2. Preparar Archivos
+```
+target/SAMLAssertionGen-1.0.0.jar
+```
 
-Copie los siguientes archivos al mismo directorio:
+#### 2. Ejecutar el JAR
 
-- `SAMLAssertionGen-1.0.0.jar`
-- `SAMLAssertion.properties`
-- `config.properties`
-
-#### 3. Ejecutar el JAR
-
-Ejecute el siguiente comando para generar la aserción SAML:
+Ejecute el siguiente comando:
 
 ```sh
-java -jar target/SAMLAssertionGen-1.0.0.jar "SAMLAssertion.properties"
+java -jar target/SAMLAssertionGen-1.0.0.jar
 ```
 
 ## Resultado Esperado
 
-Si la ejecución es exitosa, en la línea de comandos se mostrará el siguiente mensaje:
+Si la ejecución es exitosa, se mostrará un mensaje como el siguiente:
 
 ```sh
 The generated Signed SAML Assertion is: <SAML Assertion Base64>
 ```
 
-Si además se obtiene un OAuth Token, se mostrará un mensaje similar a:
+Si además se obtiene un OAuth Token, se mostrará un JSON similar a:
 
 ```json
-OAuth Token Response:
-
-{"access_token":"eyJ0b2tlbkNvbnRlbnQiOnsiYXBpS2V5IjoiTTJZMVlq...","token_type":"Bearer","expires_in":80985}
+{
+  "access_token": "eyJ0b2tlbkNvbnRlbnQiOnsiYXBpS2V5IjoiTTJZMVlq...",
+  "token_type": "Bearer",
+  "expires_in": 80985
+}
 ```
 
 Para decodificar la SAML Assertion en Base64 y verificar su contenido:
@@ -121,3 +90,12 @@ Para decodificar la SAML Assertion en Base64 y verificar su contenido:
 ```sh
 echo "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNv..." | base64 --decode
 ```
+
+## Notas Adicionales
+
+- Asegúrese de que la clave privada utilizada sea válida y coincida con la clave pública configurada en el proveedor de identidad.
+- No incluya credenciales reales en el código fuente. Para mayor seguridad, considere el uso de variables de entorno o un servicio de gestión de secretos.
+- Si encuentra errores de autenticación, revise que los valores en el código sean correctos y que el servicio de autenticación esté disponible.
+
+---
+
