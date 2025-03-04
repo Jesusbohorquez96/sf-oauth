@@ -33,21 +33,16 @@ import java.util.List;
 
 public class GenerateSaml {
 
-    public void generatesaml(String samlTokenUrl, String oauthTokenUrl, String clientId, String privateKey, String userId, String companyId) {
+    public void generatesaml( String oauthTokenUrl, String clientId, String privateKey, String userId, String companyId) {
         try {
-            if (samlTokenUrl != null && oauthTokenUrl != null && clientId != null && privateKey != null && userId != null && companyId != null) {
+            if (oauthTokenUrl != null && clientId != null && privateKey != null && userId != null && companyId != null) {
                 System.out.println("All properties are set, generating the SAML Assertion...");
-
-                String signedSAMLAssertion = generateSignedSAMLAssertion(clientId, userId, samlTokenUrl, privateKey);
-
+                String signedSAMLAssertion = generateSignedSAMLAssertion(clientId, userId, oauthTokenUrl, privateKey);
                 System.out.println("The generated Signed SAML Assertion is:");
                 System.out.println(signedSAMLAssertion);
-
-                String token = GenerateToken.getOAuthToken(samlTokenUrl, oauthTokenUrl, clientId, companyId, userId, privateKey);
-
+                String token = GenerateToken.getOAuthToken(oauthTokenUrl, clientId, companyId, userId, privateKey);
                 System.out.println("The generated Token is:");
                 System.out.println(token);
-
             } else {
                 System.out.println("One or more parameters are missing, exit!");
             }
@@ -65,8 +60,7 @@ public class GenerateSaml {
         return getSAMLAssertionString(assertion);
     }
 
-    private static Assertion buildDefaultAssertion(String clientId, String userId, String tokenUrl, int expireInMinutes,
-                                                   boolean userUserNameAsUserId) {
+    private static Assertion buildDefaultAssertion(String clientId, String userId, String tokenUrl, int expireInMinutes, boolean userUserNameAsUserId) {
         try {
             DateTime currentTime = new DateTime();
             DefaultBootstrap.bootstrap();

@@ -7,9 +7,8 @@ import java.nio.charset.StandardCharsets;
 
 public class GenerateToken {
 
-    public static String getOAuthToken(String samlTokenUrl, String oauthTokenUrl, String clientId, String companyId, String userId, String privateKey) throws Exception {
-        String signedSAMLAssertion = GenerateSaml.generateSignedSAMLAssertion(clientId, userId, samlTokenUrl, privateKey);
-
+    public static String getOAuthToken( String oauthTokenUrl, String clientId, String companyId, String userId, String privateKey) throws Exception {
+        String signedSAMLAssertion = GenerateSaml.generateSignedSAMLAssertion(clientId, userId, oauthTokenUrl, privateKey);
         if (signedSAMLAssertion == null || signedSAMLAssertion.isEmpty()) {
             throw new RuntimeException("Failed to generate SAML Assertion");
         }
