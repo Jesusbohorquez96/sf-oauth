@@ -29,67 +29,40 @@ import java.util.UUID;
 import org.opensaml.xml.schema.XSString;
 import org.opensaml.xml.schema.impl.XSStringBuilder;
 import org.opensaml.xml.security.SecurityConfiguration;
-import java.io.*;
 import java.util.List;
-import java.util.Properties;
 
 public class GenerateSaml {
 
-    public void generatesaml(String[] args){
-        {
-            String tokenUrl = null, clientId = null, privateKey = null, userId = null;
-            boolean useUserNameAsUserId = false;
-            int expireInMinutes = 10;
+    public void generatesaml(String samlTokenUrl, String oauthTokenUrl, String clientId, String privateKey, String userId, String companyId) {
+        try {
+            if (samlTokenUrl != null && oauthTokenUrl != null && clientId != null && privateKey != null && userId != null && companyId != null) {
+                System.out.println("All properties are set, generating the SAML Assertion...");
 
-            if (args.length == 0) {
-                System.out.println("Property file path is not provided, exit!");
-                return;
+                String signedSAMLAssertion = generateSignedSAMLAssertion(clientId, userId, samlTokenUrl, privateKey);
+
+                System.out.println("The generated Signed SAML Assertion is:");
+                System.out.println(signedSAMLAssertion);
+
+                String token = GenerateToken.getOAuthToken(samlTokenUrl, oauthTokenUrl, clientId, companyId, userId, privateKey);
+
+                System.out.println("The generated Token is:");
+                System.out.println(token);
+
+            } else {
+                System.out.println("One or more parameters are missing, exit!");
             }
-            try {
-                Properties properties = new Properties();
-                BufferedReader bufferedReader = new BufferedReader(new FileReader(args[0]));
-                properties.load(bufferedReader);
-                tokenUrl = properties.getProperty("tokenUrl");
-                clientId = properties.getProperty("clientId");
-                userId = properties.getProperty("userId");
-                privateKey = properties.getProperty("privateKey");
-                expireInMinutes = properties.getProperty("expireInMinutes") != null
-                        && Integer.parseInt(properties.getProperty("expireInMinutes")) > 0
-                        ? Integer.parseInt(properties.getProperty("expireInMinutes"))
-                        : 60;
-
-                if (tokenUrl != null && clientId != null && privateKey != null && userId != null) {
-                    System.out.println("All properties are set, generating the SAML Assertion...");
-
-                    String signedSAMLAssertion = generateSignedSAMLAssertion(clientId, userId, tokenUrl, privateKey,
-                            expireInMinutes, useUserNameAsUserId);
-
-                    System.out.println("The generated Signed SAML Assertion is:");
-                    System.out.println(signedSAMLAssertion);
-
-                    String token = GenerateToken.getOAuthToken(signedSAMLAssertion);
-                    System.out.println("The generated Token is:");
-                    System.out.println(token);
-
-                } else {
-                    System.out.println("One or more parameter is not provided, exit!");
-                }
-            } catch (Exception e) {
-                System.out.println("Fail to generate SAML Assertion due to " + e.getMessage());
-            }
+        } catch (Exception e) {
+            System.out.println("Failed to generate SAML Assertion due to " + e.getMessage());
         }
     }
 
-    public static String generateSignedSAMLAssertion(String clientId, String username, String tokenUrl,
-                                                     String privateKeyString, int expireInMinutes, boolean userUserNameAsUserId) throws Exception {
-
-        Assertion unsignedAssertion = buildDefaultAssertion(clientId, username, tokenUrl, expireInMinutes,
-                userUserNameAsUserId);
-        PrivateKey privateKey = generatePrivateKey(privateKeyString);
-        Assertion assertion = sign(unsignedAssertion, privateKey);
-        String signedAssertion = getSAMLAssertionString(assertion);
-
-        return signedAssertion;
+    public static String generateSignedSAMLAssertion(String clientId, String username, String tokenUrl, String privateKey) throws Exception {
+        int expireInMinutes = 60;
+        boolean useUserNameAsUserId = false;
+        Assertion unsignedAssertion = buildDefaultAssertion(clientId, username, tokenUrl, expireInMinutes, useUserNameAsUserId);
+        PrivateKey privateKeyObj = generatePrivateKey(privateKey);
+        Assertion assertion = sign(unsignedAssertion, privateKeyObj);
+        return getSAMLAssertionString(assertion);
     }
 
     private static Assertion buildDefaultAssertion(String clientId, String userId, String tokenUrl, int expireInMinutes,
@@ -163,7 +136,6 @@ public class GenerateSaml {
                 useUserNameAsUserIdStatement.getAttributes().add(useUserNameKeyAttribute);
                 assertion.getAttributeStatements().add(useUserNameAsUserIdStatement);
             }
-
             return assertion;
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);

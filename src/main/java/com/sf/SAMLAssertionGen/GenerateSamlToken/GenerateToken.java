@@ -4,28 +4,14 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Properties;
 
 public class GenerateToken {
 
-    private static Properties loadProperties() throws IOException {
-        Properties properties = new Properties();
-        String configPath = "config.properties";
+    public static String getOAuthToken(String samlTokenUrl, String oauthTokenUrl, String clientId, String companyId, String userId, String privateKey) throws Exception {
+        String signedSAMLAssertion = GenerateSaml.generateSignedSAMLAssertion(clientId, userId, samlTokenUrl, privateKey);
 
-        try (InputStream input = new FileInputStream(configPath)) {
-            properties.load(input);
-        }
-        return properties;
-    }
-
-    public static String getOAuthToken(String signedSAMLAssertion) throws Exception {
-        Properties properties = loadProperties();
-        String tokenUrl = properties.getProperty("tokenUrl");
-        String clientId = properties.getProperty("clientId");
-        String companyId = properties.getProperty("companyId");
-
-        if (tokenUrl == null || clientId == null || companyId == null || signedSAMLAssertion == null) {
-            throw new RuntimeException("One or more required parameters are missing for OAuth token request.");
+        if (signedSAMLAssertion == null || signedSAMLAssertion.isEmpty()) {
+            throw new RuntimeException("Failed to generate SAML Assertion");
         }
 
         String postData = "company_id=" + companyId +
@@ -33,7 +19,7 @@ public class GenerateToken {
                 "&grant_type=urn:ietf:params:oauth:grant-type:saml2-bearer" +
                 "&assertion=" + signedSAMLAssertion;
 
-        URL url = new URL(tokenUrl);
+        URL url = new URL(oauthTokenUrl);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
@@ -66,4 +52,3 @@ public class GenerateToken {
         }
     }
 }
-
