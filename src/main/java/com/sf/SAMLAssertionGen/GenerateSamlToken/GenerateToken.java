@@ -4,15 +4,16 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import org.json.JSONObject;
 
 public class GenerateToken {
 
-    public static String getOAuthToken( String oauthTokenUrl, String clientId, String companyId, String userId, String privateKey) throws Exception {
+    public static String getOAuthToken(String oauthTokenUrl, String clientId, String companyId, String userId, String privateKey) throws Exception {
         String signedSAMLAssertion = GenerateSaml.generateSignedSAMLAssertion(clientId, userId, oauthTokenUrl, privateKey);
+
         if (signedSAMLAssertion == null || signedSAMLAssertion.isEmpty()) {
             throw new RuntimeException("Failed to generate SAML Assertion");
         }
-
         String postData = "company_id=" + companyId +
                 "&client_id=" + clientId +
                 "&grant_type=urn:ietf:params:oauth:grant-type:saml2-bearer" +
@@ -28,26 +29,34 @@ public class GenerateToken {
             os.write(postData.getBytes(StandardCharsets.UTF_8));
             os.flush();
         }
-
         int responseCode = conn.getResponseCode();
+        String response = readResponse(conn);
         if (responseCode == HttpURLConnection.HTTP_OK) {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
-                StringBuilder response = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    response.append(line);
-                }
-                return response.toString();
-            }
+            return extractToken(response);
         } else {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getErrorStream(), StandardCharsets.UTF_8))) {
-                StringBuilder errorResponse = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    errorResponse.append(line);
-                }
-                throw new RuntimeException("Error in OAuth request: HTTP " + responseCode + "\n" + errorResponse);
+            throw new RuntimeException("Error in OAuth request: HTTP " + responseCode + "\n" + response);
+        }
+    }
+
+    private static String readResponse(HttpURLConnection conn) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                conn.getResponseCode() == HttpURLConnection.HTTP_OK ? conn.getInputStream() : conn.getErrorStream(),
+                StandardCharsets.UTF_8))) {
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
             }
+            return response.toString();
+        }
+    }
+
+    private static String extractToken(String jsonResponse) {
+        try {
+            JSONObject jsonObject = new JSONObject(jsonResponse);
+            return jsonObject.optString("access_token", "Token not found in response");
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse token from response: " + jsonResponse, e);
         }
     }
 }
