@@ -22,16 +22,17 @@ Ejemplo de configuración en código:
 
 ```java
 public class SAMLAssertionGenerator {
-    public static void main(String[] args) {
+    public static void main(String[] args)  {
         GenerateSaml generator = new GenerateSaml();
 
-        generator.generatesaml(
+        String token = generator.generatesaml(
                 "https://example.com/oauth/token",
                 "your-client-id",
                 "your-private-key",
                 "your-user-api",
                 "your-company-id"
         );
+        System.out.println("Generated OAuth Token: " + token);
     }
 }
 ```
@@ -77,11 +78,11 @@ The generated Signed SAML Assertion is: <SAML Assertion Base64>
 Si además se obtiene un OAuth Token, se mostrará un JSON similar a:
 
 ```json
-{
-  "access_token": "eyJ0b2tlbkNvbnRlbnQiOnsiYXBpS2V5IjoiTTJZMVlq...",
-  "token_type": "Bearer",
-  "expires_in": 80985
-}
+
+Generated OAuth Token:
+
+"eyJ0b2tlbkNvbnRlbnQiOnsiYXBpS2V5IjoiTTJZMVlq...",
+
 ```
 
 Para decodificar la SAML Assertion en Base64 y verificar su contenido:
