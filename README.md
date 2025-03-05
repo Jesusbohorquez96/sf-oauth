@@ -1,8 +1,8 @@
-# Generador de SAML Assertions y Tokens OAuth2
+# Generador de Tokens OAuth2
 
 ## Introducción
 
-SAML Assertions es una herramienta que permite la generación de SAML Assertions para autenticación y obtención de tokens en aplicaciones que requieren este tipo de autenticación.
+SAML Assertions es una herramienta que permite la generación tokens en aplicaciones que requieren este tipo de autenticación.
 
 Este proyecto está desarrollado en **Java** y utiliza **Maven** para la gestión de dependencias.
 
