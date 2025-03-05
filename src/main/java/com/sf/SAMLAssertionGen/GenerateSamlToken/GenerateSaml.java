@@ -33,21 +33,19 @@ import java.util.List;
 
 public class GenerateSaml {
 
-    public void generatesaml( String oauthTokenUrl, String clientId, String privateKey, String userId, String companyId) {
+    public String generatesaml(String oauthTokenUrl, String clientId, String privateKey, String userId, String companyId) {
         try {
             if (oauthTokenUrl != null && clientId != null && privateKey != null && userId != null && companyId != null) {
-                System.out.println("All properties are set, generating the SAML Assertion...");
                 String signedSAMLAssertion = generateSignedSAMLAssertion(clientId, userId, oauthTokenUrl, privateKey);
                 System.out.println("The generated Signed SAML Assertion is:");
                 System.out.println(signedSAMLAssertion);
-                String token = GenerateToken.getOAuthToken(oauthTokenUrl, clientId, companyId, userId, privateKey);
-                System.out.println("The generated Token is:");
-                System.out.println(token);
+                String saml = GenerateToken.getOAuthToken(oauthTokenUrl, clientId, companyId, userId, privateKey);
+                return saml;
             } else {
-                System.out.println("One or more parameters are missing, exit!");
+                throw new IllegalArgumentException("One or more parameters are missing, exit!");
             }
         } catch (Exception e) {
-            System.out.println("Failed to generate SAML Assertion due to " + e.getMessage());
+            throw new RuntimeException("Failed to generate SAML Assertion due to: " + e.getMessage(), e);
         }
     }
 
