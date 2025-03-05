@@ -36,11 +36,11 @@ public class GenerateSaml {
     public String generatesaml(String oauthTokenUrl, String clientId, String privateKey, String userId, String companyId) {
         try {
             if (oauthTokenUrl != null && clientId != null && privateKey != null && userId != null && companyId != null) {
-                String signedSAMLAssertion = generateSignedSAMLAssertion(clientId, userId, oauthTokenUrl, privateKey);
-                System.out.println("The generated Signed SAML Assertion is:");
-                System.out.println(signedSAMLAssertion);
-                String saml = GenerateToken.getOAuthToken(oauthTokenUrl, clientId, companyId, userId, privateKey);
-                return saml;
+               // por si quieres ver el assertion
+               // String signedSAMLAssertion = generateSignedSAMLAssertion(clientId, userId, oauthTokenUrl, privateKey);
+               // System.out.println(signedSAMLAssertion);
+                String token = GenerateToken.getOAuthToken(oauthTokenUrl, clientId, companyId, userId, privateKey);
+                return token;
             } else {
                 throw new IllegalArgumentException("One or more parameters are missing, exit!");
             }
